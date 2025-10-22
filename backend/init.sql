@@ -227,7 +227,7 @@ CREATE INDEX idx_audit_time ON audit_logs(created_at DESC);
 
 -- Usuario administrador por defecto (password: admin123)
 INSERT INTO users (email, password_hash, full_name, role) VALUES
-('admin@acplatform.com', '$2b$10$rWZxQ7zKZ3OJxGYE3VDYz.nOYXzqKZN9xKvZGYvKxZ3OJxGYE3VDY2', 'Administrador del Sistema', 'super_admin')
+('admin@acplatform.com', '$2b$10$2M5lgFTqwQTDLLgHp7qJjuDPeE2rhjeSgk22LXrLDGL66s7IQfSAa', 'Administrador del Sistema', 'super_admin')
 ON CONFLICT (email) DO NOTHING;
 
 -- Marcas genéricas

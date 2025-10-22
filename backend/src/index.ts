@@ -51,6 +51,9 @@ class App {
   }
 
   private initializeMiddlewares(): void {
+    // Trust proxy (required for Railway/Vercel/etc)
+    this.app.set('trust proxy', 1);
+
     // Security middleware
     this.app.use(helmet());
 
