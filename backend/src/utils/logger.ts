@@ -1,5 +1,13 @@
 import winston from 'winston';
 import config from '../config';
+import fs from 'fs';
+import path from 'path';
+
+// Create logs directory if it doesn't exist
+const logsDir = path.join(process.cwd(), 'logs');
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
 
 const logger = winston.createLogger({
   level: config.env === 'development' ? 'debug' : 'info',
@@ -16,14 +24,12 @@ const logger = winston.createLogger({
   ]
 });
 
-// Console output in development
-if (config.env === 'development') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple()
-    )
-  }));
-}
+// Console output for all environments (needed for Railway logs)
+logger.add(new winston.transports.Console({
+  format: winston.format.combine(
+    config.env === 'development' ? winston.format.colorize() : winston.format.uncolorize(),
+    winston.format.simple()
+  )
+}));
 
 export default logger;
