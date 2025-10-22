@@ -122,15 +122,38 @@ class App {
     this.app.use(errorHandler);
   }
 
+  private async connectWithRetry(
+    name: string,
+    connectFn: () => Promise<void>,
+    maxRetries: number = 5,
+    delayMs: number = 3000
+  ): Promise<void> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await connectFn();
+        logger.info(`${name} connected successfully`);
+        return;
+      } catch (error) {
+        logger.warn(`${name} connection attempt ${attempt}/${maxRetries} failed:`, error);
+        if (attempt === maxRetries) {
+          throw new Error(`Failed to connect to ${name} after ${maxRetries} attempts`);
+        }
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+
   public async start(): Promise<void> {
     try {
-      // Test database connection
-      await database.query('SELECT NOW()');
-      logger.info('Database connected successfully');
+      // Test database connection with retries
+      await this.connectWithRetry('Database', async () => {
+        await database.query('SELECT NOW()');
+      });
 
-      // Connect to Redis
-      await redis.connect();
-      logger.info('Redis connected successfully');
+      // Connect to Redis with retries
+      await this.connectWithRetry('Redis', async () => {
+        await redis.connect();
+      });
 
       // Start scheduler service
       await schedulerService.start();

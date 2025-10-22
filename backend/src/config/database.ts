@@ -11,7 +11,7 @@ class Database {
       connectionString: config.database.url,
       max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
+      connectionTimeoutMillis: config.env === 'production' ? 10000 : 2000,
     });
 
     this.pool.on('connect', () => {
