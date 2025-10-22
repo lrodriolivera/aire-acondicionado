@@ -4,6 +4,8 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import fs from 'fs';
+import path from 'path';
 import config from './config';
 import logger from './utils/logger';
 import database from './config/database';
@@ -143,12 +145,46 @@ class App {
     }
   }
 
+  private async initializeDatabaseSchema(): Promise<void> {
+    try {
+      // Check if users table exists
+      const result = await database.query(
+        "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')"
+      );
+
+      const tablesExist = result.rows[0].exists;
+
+      if (!tablesExist) {
+        logger.info('Database tables not found. Initializing schema...');
+
+        // Read and execute init.sql
+        const sqlPath = path.join(__dirname, '../init.sql');
+
+        if (fs.existsSync(sqlPath)) {
+          const sql = fs.readFileSync(sqlPath, 'utf8');
+          await database.query(sql);
+          logger.info('Database schema initialized successfully');
+        } else {
+          logger.warn(`init.sql file not found at ${sqlPath}, skipping schema initialization`);
+        }
+      } else {
+        logger.info('Database schema already initialized');
+      }
+    } catch (error) {
+      logger.error('Error checking/initializing database schema:', error);
+      // Don't throw error, let the app continue - tables might already exist
+    }
+  }
+
   public async start(): Promise<void> {
     try {
       // Test database connection with retries
       await this.connectWithRetry('Database', async () => {
         await database.query('SELECT NOW()');
       });
+
+      // Initialize database schema if needed
+      await this.initializeDatabaseSchema();
 
       // Connect to Redis with retries
       await this.connectWithRetry('Redis', async () => {
