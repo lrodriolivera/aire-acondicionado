@@ -1,0 +1,114 @@
+import axios, { AxiosInstance } from 'axios';
+import { BaseACAdapter } from '../base/ACAdapter';
+import { DeviceStatus, ACMode, FanSpeed } from '../../types';
+import logger from '../../utils/logger';
+
+export class GenericHTTPAdapter extends BaseACAdapter {
+  private httpClient: AxiosInstance;
+  private baseUrl: string;
+  private apiKey?: string;
+
+  constructor(deviceId: string, config: any) {
+    super(deviceId, config);
+
+    this.baseUrl = config.apiUrl || `http://localhost:8080/api/devices/${deviceId}`;
+    this.apiKey = config.apiKey;
+
+    this.httpClient = axios.create({
+      baseURL: this.baseUrl,
+      timeout: 10000,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+      }
+    });
+  }
+
+  async connect(): Promise<void> {
+    try {
+      // Verificar conectividad haciendo una petición de estado
+      await this.httpClient.get('/status');
+      this.connected = true;
+      logger.info(`HTTP Adapter connected for device ${this.deviceId}`);
+    } catch (error) {
+      this.connected = false;
+      logger.error(`HTTP Adapter failed to connect for device ${this.deviceId}:`, error);
+      throw error;
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    this.connected = false;
+    logger.info(`HTTP Adapter disconnected for device ${this.deviceId}`);
+  }
+
+  async getStatus(): Promise<Partial<DeviceStatus>> {
+    try {
+      const response = await this.httpClient.get('/status');
+      const data = response.data;
+
+      // Mapear campos usando la configuración
+      const mappings = this.config.mappings || {};
+
+      return {
+        temperature: this.getNestedValue(data, mappings.temperature || 'temperature'),
+        target_temperature: this.getNestedValue(data, mappings.target_temperature || 'targetTemperature'),
+        humidity: this.getNestedValue(data, mappings.humidity || 'humidity'),
+        mode: this.getNestedValue(data, mappings.mode || 'mode'),
+        fan_speed: this.getNestedValue(data, mappings.fan_speed || 'fanSpeed'),
+        power_state: this.getNestedValue(data, mappings.power_state || 'powerState'),
+        is_online: true,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      logger.error(`Failed to get status for device ${this.deviceId}:`, error);
+      throw error;
+    }
+  }
+
+  private getNestedValue(obj: any, path: string): any {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
+  }
+
+  private async sendCommand(endpoint: string, data: any): Promise<void> {
+    try {
+      await this.httpClient.post(endpoint, data);
+      logger.info(`Command sent for device ${this.deviceId}:`, { endpoint, data });
+    } catch (error) {
+      logger.error(`Failed to send command for device ${this.deviceId}:`, error);
+      throw error;
+    }
+  }
+
+  async setPower(on: boolean): Promise<void> {
+    const commandConfig = this.config.commands?.setPower;
+    const endpoint = commandConfig?.endpoint || '/power';
+    const payload = commandConfig?.payload || { power: on };
+
+    await this.sendCommand(endpoint, payload);
+  }
+
+  async setTemperature(temperature: number): Promise<void> {
+    const commandConfig = this.config.commands?.setTemperature;
+    const endpoint = commandConfig?.endpoint || '/temperature';
+    const payload = commandConfig?.payload || { temperature };
+
+    await this.sendCommand(endpoint, payload);
+  }
+
+  async setMode(mode: ACMode): Promise<void> {
+    const commandConfig = this.config.commands?.setMode;
+    const endpoint = commandConfig?.endpoint || '/mode';
+    const payload = commandConfig?.payload || { mode };
+
+    await this.sendCommand(endpoint, payload);
+  }
+
+  async setFanSpeed(speed: FanSpeed): Promise<void> {
+    const commandConfig = this.config.commands?.setFanSpeed;
+    const endpoint = commandConfig?.endpoint || '/fanSpeed';
+    const payload = commandConfig?.payload || { fanSpeed: speed };
+
+    await this.sendCommand(endpoint, payload);
+  }
+}
