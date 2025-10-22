@@ -195,7 +195,7 @@ class App {
       await schedulerService.start();
 
       // Start server
-      this.server.listen(config.port, () => {
+      this.server.listen(config.port, '0.0.0.0', () => {
         logger.info(`Server running on port ${config.port} in ${config.env} mode`);
       });
     } catch (error) {
