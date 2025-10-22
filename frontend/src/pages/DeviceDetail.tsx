@@ -4,7 +4,8 @@ import { deviceService } from '../services/device.service';
 import { useState } from 'react';
 import { CommandType, ACMode, FanSpeed } from '../types';
 import toast from 'react-hot-toast';
-import { Thermometer, Power, Wind, Droplets, RefreshCw } from 'lucide-react';
+import { Thermometer, Power, Wind, Droplets } from 'lucide-react';
+// import { RefreshCw } from 'lucide-react'; // TODO: Use for manual refresh button
 
 export default function DeviceDetail() {
   const { id } = useParams<{ id: string }>();

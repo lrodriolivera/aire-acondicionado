@@ -31,11 +31,19 @@ const AC_MODES = [
 
 export default function Schedules() {
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    device_id: string;
+    name: string;
+    schedule_type: string;
+    days: number[];
+    time: string;
+    action_type: string;
+    action_value: boolean | number | string;
+  }>({
     device_id: '',
     name: '',
     schedule_type: 'recurring',
-    days: [] as number[],
+    days: [],
     time: '',
     action_type: 'setPower',
     action_value: true
@@ -94,7 +102,7 @@ export default function Schedules() {
       days: [],
       time: '',
       action_type: 'setPower',
-      action_value: true
+      action_value: true as boolean | number | string
     });
   };
 

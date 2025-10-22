@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { Settings as SettingsIcon, User, Bell, Shield, Database, Save } from 'lucide-react';
+import { Settings as SettingsIcon, User, Bell, Shield, Save } from 'lucide-react';
+// import { Database } from 'lucide-react'; // TODO: Use for database settings tab
 import toast from 'react-hot-toast';
 
 export default function Settings() {

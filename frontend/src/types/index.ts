@@ -6,6 +6,7 @@ export interface User {
   full_name: string;
   role: UserRole;
   is_active: boolean;
+  last_login?: string;
   created_at: string;
 }
 
@@ -115,6 +116,22 @@ export enum FanSpeed {
 
 export interface DeviceWithStatus extends Device {
   currentStatus?: DeviceStatus;
+  // Flattened properties from related tables for convenience
+  location_name?: string;
+  model_name?: string;
+  brand_name?: string;
+  protocol_type?: ProtocolType;
+  min_temperature?: number;
+  max_temperature?: number;
+  // Flattened properties from status
+  temperature?: number;
+  target_temperature?: number;
+  humidity?: number;
+  mode?: ACMode;
+  fan_speed?: FanSpeed;
+  power_state?: boolean;
+  is_online?: boolean;
+  status_timestamp?: string;
 }
 
 export interface CommandPayload {
