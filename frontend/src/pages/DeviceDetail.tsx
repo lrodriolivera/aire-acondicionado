@@ -30,10 +30,30 @@ export default function DeviceDetail() {
   });
 
   const sendCommand = (commandType: CommandType, value: any) => {
+    // Map the parameter name based on command type
+    let parameters: any = {};
+
+    switch (commandType) {
+      case CommandType.SET_POWER:
+        parameters = { power: value };
+        break;
+      case CommandType.SET_TEMPERATURE:
+        parameters = { temperature: value };
+        break;
+      case CommandType.SET_MODE:
+        parameters = { mode: value };
+        break;
+      case CommandType.SET_FAN_SPEED:
+        parameters = { fanSpeed: value };
+        break;
+      default:
+        parameters = { value };
+    }
+
     commandMutation.mutate({
       deviceId: id,
       commandType,
-      parameters: { value }
+      parameters
     });
   };
 
