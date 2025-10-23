@@ -22,7 +22,8 @@ export default function DeviceDetail() {
     mutationFn: (payload: any) => deviceService.sendCommand(payload),
     onSuccess: () => {
       toast.success('Comando enviado');
-      queryClient.invalidateQueries({ queryKey: ['device', id] });
+      // Force immediate refetch ignoring staleTime
+      queryClient.refetchQueries({ queryKey: ['device', id] });
     },
     onError: () => {
       toast.error('Error al enviar comando');
